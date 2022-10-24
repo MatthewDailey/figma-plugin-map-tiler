@@ -1,62 +1,40 @@
-// This file holds the main code for the plugin. It has access to the *document*.
-// You can access browser APIs such as the network by creating a UI which contains
-// a full browser environment (see documentation).
+// Get selection and choose rectangle as the tile and image as the map to cover.
+const selection = figma.currentPage.selection;
 
-// Runs this code if the plugin is run in Figma
-if (figma.editorType === "figma") {
-  // This plugin creates 5 rectangles on the screen.
-  const numberOfRectangles = 5;
-
-  const nodes: SceneNode[] = [];
-  for (let i = 0; i < numberOfRectangles; i++) {
-    const rect = figma.createRectangle();
-    rect.x = i * 150;
-    rect.fills = [{ type: "SOLID", color: { r: 1, g: 0.5, b: 0 } }];
-    figma.currentPage.appendChild(rect);
-    nodes.push(rect);
+if (selection.length !== 2) {
+  if (selection.length === 1) {
+    
+    const newRect = figma.createRectangle()
+    newRect.resize(selection[0].width / 100, selection[0].width / 100)
+    newRect.x = selection[0].x
+    newRect.y = selection[0].y
+    figma.closePlugin("Tile created, re-run selecting image and tile.")
+  } else {
+    figma.closePlugin("Please select an image to tile.")
   }
-  figma.currentPage.selection = nodes;
-  figma.viewport.scrollAndZoomIntoView(nodes);
-
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-  figma.closePlugin();
-
-  // If the plugins isn't run in Figma, run this code
 } else {
-  // This plugin creates 5 shapes and 5 connectors on the screen.
-  const numberOfShapes = 5;
-
-  const nodes: SceneNode[] = [];
-  for (let i = 0; i < numberOfShapes; i++) {
-    const shape = figma.createShapeWithText();
-    // You can set shapeType to one of: 'SQUARE' | 'ELLIPSE' | 'ROUNDED_RECTANGLE' | 'DIAMOND' | 'TRIANGLE_UP' | 'TRIANGLE_DOWN' | 'PARALLELOGRAM_RIGHT' | 'PARALLELOGRAM_LEFT'
-    shape.shapeType = "ROUNDED_RECTANGLE";
-    shape.x = i * (shape.width + 200);
-    shape.fills = [{ type: "SOLID", color: { r: 1, g: 0.5, b: 0 } }];
-    figma.currentPage.appendChild(shape);
-    nodes.push(shape);
+  // Select smallest node as the tile and larger as base.
+  function getTileAndBase() {
+    const tile = selection[0];
+    const base = selection[1];
+    if (tile.width * tile.height > base.width * base.height) {
+      return [base, tile];
+    }
+    return [tile, base];
   }
 
-  for (let i = 0; i < numberOfShapes - 1; i++) {
-    const connector = figma.createConnector();
-    connector.strokeWeight = 8;
+  const [tile, base] = getTileAndBase();
 
-    connector.connectorStart = {
-      endpointNodeId: nodes[i].id,
-      magnet: "AUTO",
-    };
+  const numberOfTilesX = Math.ceil(base.width / tile.width);
+  const numberOfTilesY = Math.ceil(base.height / tile.height);
 
-    connector.connectorEnd = {
-      endpointNodeId: nodes[i + 1].id,
-      magnet: "AUTO",
-    };
+  for (let i = 0; i < numberOfTilesX; i++) {
+    for (let j = 0; j < numberOfTilesY; j++) {
+      const tileClone = tile.clone();
+      tileClone.x = base.x + tile.width * i;
+      tileClone.y = base.y + tile.height * j;
+    }
   }
 
-  figma.currentPage.selection = nodes;
-  figma.viewport.scrollAndZoomIntoView(nodes);
-
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
   figma.closePlugin();
 }

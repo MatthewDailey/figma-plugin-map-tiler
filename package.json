@@ -1,16 +1,16 @@
 {
-  "name": "Map Revealer",
+  "name": "map-revealer",
   "version": "1.0.0",
   "description": "Your Figma Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node_modules/typescript/bin/tsc -p tsconfig.json",
     "watch": "npm run build -- --watch"
   },
   "author": "",
   "license": "",
   "devDependencies": {
     "@figma/plugin-typings": "*",
-    "typescript": "*"
+    "typescript": "^4.8.4"
   }
 }
